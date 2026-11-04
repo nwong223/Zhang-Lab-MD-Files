@@ -1,0 +1,42 @@
+title          = TIP4P Water Slab NVT Equilibration
+
+; Run Control
+integrator     = md
+dt             = 0.002
+nsteps         = 500000
+
+; Neighbor Searching
+cutoff-scheme  = Verlet
+pbc            = xyz
+rlist          = 1.0
+nstlist        = 20
+
+; Electrostatics
+coulombtype    = PME
+rcoulomb       = 1.0
+
+; Van der Waals
+vdwtype        = Cut-off
+rvdw           = 1.0
+vdw-modifier   = Potential-shift-Verlet
+
+; Ewald
+ewald-geometry = 3dc
+
+; Temperature Coupling
+tcoupl         = v-rescale
+tc-grps        = System
+tau-t          = 1.0
+ref-t          = 298
+
+; Pressure Coupling
+pcoupl         = no
+
+; Bonds
+constraints    = h-bonds
+constraint-algorithm = lincs
+lincs-order    = 4
+lincs-iter     = 1
+
+; Velocity Generation
+gen-vel        = no

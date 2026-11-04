@@ -1,0 +1,9 @@
+#include "../charmm36.ff/forcefield.itp"
+#include "../charmm36.ff/tip3p.itp"
+
+[ System ]
+TIP3P Water Slab in water
+
+[ Molecules ]
+SOL              216
+SOL              3838

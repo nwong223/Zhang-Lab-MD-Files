@@ -1,0 +1,46 @@
+title                = TIP4P Water Box NPT Equilibration
+
+; Run Control
+integrator           = md
+nsteps               = 250000
+dt                   = 0.002
+
+; Neighbor Searching
+cutoff-scheme        = Verlet
+nstlist              = 20
+ns-type              = grid
+pbc                  = xyz
+
+; Electrostatics
+rcoulomb             = 1.0
+coulombtype          = PME
+
+; Van Der Waals
+rvdw                 = 1.0
+vdw-modifier         = Potential-shift-Verlet
+
+; Ewald
+ewald-geometry       = 3d
+
+; Temperature Coupling
+tcoupl               = V-rescale
+tc-grps              = System 
+tau_t                = 1.0
+ref_t                = 298 
+
+; Pressure Coupling
+pcoupl               = Parrinello-Rahman
+pcoupltype           = isotropic
+tau_p                = 5.0
+ref_p                = 1.0
+compressibility      = 4.5e-5
+
+; Velocity Generation
+gen-vel              = no
+
+; Bonds
+constraints          = h-bonds
+constraint-algorithm = LINCS
+continuation         = yes
+lincs-iter           = 1
+lincs-order          = 4
