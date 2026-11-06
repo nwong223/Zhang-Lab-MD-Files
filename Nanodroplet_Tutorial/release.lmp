@@ -1,0 +1,40 @@
+# This file is for beginning production run FROM THE BEGINNING ONLY
+
+# Initialization
+log release_tr2.log
+units real
+boundary p p p
+atom_style full
+bond_style harmonic
+angle_style harmonic
+pair_style lj/cut/coul/long 10.0 10.0
+kspace_style pppm 1e-5
+
+read_restart minimization.restart
+include parameters.inc
+include groups.inc
+
+# Run parameters, compute hbonds and MSD
+fix mynvt H2O nvt temp 300 300 100
+fix myshk H2O shake 1.0e-5 200 0 b OW-HW a HW-OW-HW kbond 2000
+fix extpot H2O addforce 0 0 -0.001 region middle
+fix mynvt2 GOLD nvt temp 300 300 100
+fix recent all recenter NULL NULL INIT units lattice
+
+# Monitoring and dump
+dump PF_pos PF_rel_only custom 500 PF_pos_rel_tr2.lammpstrj id mol type x y z
+dump mytraj all custom 500 drop_release.lammpstrj id mol type x y z vz vy vz
+dump mymov2 all movie 500 drop_release_check.avi type type size 1000 1000
+dump_modify mymov2 backcolor black acolor HW white adiam HW 1 acolor OW red adiam OW 2 acolor Au yellow adiam Au 3
+thermo 500
+thermo_style custom step temp density press 
+
+restart 100000 res_release.*.restart
+restart 10000 res_release.restart1 res_release.restart2
+
+# Run
+timestep 1
+run 1000000 upto
+
+write_data drop_release.data
+write_restart release.restart
