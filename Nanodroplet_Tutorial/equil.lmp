@@ -1,0 +1,53 @@
+# System definition
+log equil.log
+units real
+boundary p p p
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+pair_style lj/cut/coul/long 10.0 10.0
+kspace_style pppm 1e-5
+
+# Include data from generation setup
+read_data generation.data
+
+# Groups and parameters to use
+include parameters.inc
+include groups.inc
+
+# Energy minimization
+thermo 10
+thermo_style custom step temp etotal vol density press
+dump min all movie 1 syst_em.avi type type size 1000 1000
+dump_modify min backcolor black acolor HW white adiam HW 1 acolor OW red adiam OW 2 acolor Au yellow adiam Au 3
+
+fix myshk H2O shake 1.0e-5 200 0 b OW-HW a HW-OW-HW kbond 2000
+minimize 1.0e-6 1.0e-6 1000 1000
+undump min
+reset_timestep 0
+
+# Equilibration
+velocity H2O create 300 12345 dist gaussian rot yes
+compute Twater H2O temp
+fix mynvt H2O nvt temp 300 300 100
+fix_modify mynvt temp Twater
+fix myshk H2O shake 1.0e-5 200 0 b OW-HW a HW-OW-HW kbond 2000
+
+compute Tgold GOLD temp
+fix mynvt2 GOLD nvt temp 300 300 100
+fix_modify mynvt2 temp Tgold
+
+# Monitoring
+dump mymov all movie 50 system_equil.avi type type size 1000 1000
+dump_modify mymov backcolor black acolor HW white adiam HW 1 acolor OW red adiam OW 2 acolor Au yellow adiam Au 3
+thermo 100
+thermo_style custom step temp etotal density press c_Twater
+
+# Run
+timestep 0.5
+run 25000
+
+# Write output files
+write_restart minimization.restart
+write_data equilibration.data

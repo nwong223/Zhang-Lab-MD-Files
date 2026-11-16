@@ -1,0 +1,45 @@
+# System Generation
+units real
+boundary p p p
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+pair_style lj/cut/coul/long 10
+kspace_style pppm 1e-5
+
+# Create whole simulation box, but don't populate with atoms yet
+lattice fcc 4.00
+region system block -15 15 -15 15 -15 15
+create_box 3 system bond/types 1 angle/types 1 extra/bond/per/atom 2 extra/angle/per/atom 1 &
+	extra/special/per/atom 2
+
+# Label atoms, bonds, and angles
+labelmap atom 1 OW 2 HW 3 Au
+labelmap bond 1 OW-HW
+labelmap angle 1 HW-OW-HW
+
+# Define properties of atoms
+molecule H2O spce_water.mol
+include parameters.inc
+
+# Populate bottom half of system with gold atoms
+region substrate block -15 15 -15 15 -15 -11.25
+region ceiling block -15 15 -15 15 14.25 15
+create_atoms Au region ceiling
+create_atoms Au region substrate
+
+# Create water nanodroplet
+lattice none 1
+region droplet sphere 0 0 0  17.5
+create_atoms 0 random 700 12345 droplet mol H2O 12345 overlap 1.5 maxtry 500
+
+# Dump Image
+dump visual all image 200 system_initial*.jpg type type size 1000 1000
+dump_modify visual backcolor black acolor HW white adiam HW 1 acolor OW red adiam OW 2 &
+	acolor Au yellow adiam Au 3
+dump viz_trj all atom 200 gen_trj*.lammpstrj
+
+# Initialize
+run 0
+write_data generation.data

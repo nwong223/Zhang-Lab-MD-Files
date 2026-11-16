@@ -1,0 +1,49 @@
+# Use this LMP file to continue MD Production of the CALCULATE run
+
+# Initialization
+log calc_tr2.log append
+units real
+boundary p p p
+atom_style full
+bond_style harmonic
+angle_style harmonic
+pair_style lj/cut/coul/long 10.0 10.0
+kspace_style pppm 1e-5
+
+read_restart res_calc.restart1
+include parameters.inc
+include groups.inc
+
+# Run parameters, compute hbonds and MSD
+fix mynvt H2O nvt temp 300 300 100
+fix myshk H2O shake 1.0e-5 200 0 b OW-HW a HW-OW-HW kbond 2000
+fix extpot H2O addforce 0 0 -0.001 region middle
+fix mynvt2 GOLD nvt temp 300 300 100
+fix recent all recenter NULL NULL INIT units lattice
+
+   #compute hb_avg H2O hbond/local 3.5 63.658 oxygen oxygen hydrogen dist hdist angle ehb
+compute hb_PF Prefilm hbond/local 3.5 63.658 oxygen oxygen hydrogen dist hdist angle ehb
+   #compute mymsd_avg H2O msd com yes average yes
+compute mymsd_PF Prefilm msd com yes
+variable n_PF equal count(Prefilm)
+
+# Monitoring and dump
+dump hb_PF Prefilm local 1000 hbonds.dump c_hb_PF[*]
+dump_modify hb_PF label "HBONDS" colname 1 Hydrogen colname 2 "   Donor " colname 3 Acceptor &
+                   colname 4 " r_DA  " colname 5 "  r_HA  " colname 6 "  theta " colname 7 "  e_hb"  &
+                   format line "%20.0f %8.0f %8.0f %8.3f %8.3f %8.3f %8.3f"
+dump mytraj all custom 500 drop_calc.lammpstrj id mol type x y z vz vy vz
+dump_modify mytraj append yes
+dump mymov3 all movie 500 drop_calc_check_cont.avi type type size 1000 1000
+dump_modify mymov3 backcolor black acolor HW white adiam HW 1 acolor OW red adiam OW 2 acolor Au yellow adiam Au 3
+thermo 500
+thermo_style custom step temp density v_n_PF c_hb_PF c_mymsd_PF[1] c_mymsd_PF[2] c_mymsd_PF[3]
+
+restart 100000 res_calc.*.restart
+restart 10000 res_calc.restart1 res_release.restart2
+
+# Run
+timestep 1
+run 3000000 upto
+
+write_data drop_calc.data
