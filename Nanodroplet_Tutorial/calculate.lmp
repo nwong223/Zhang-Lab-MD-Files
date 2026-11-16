@@ -19,12 +19,10 @@ fix extpot H2O addforce 0 0 -0.001 region middle
 fix mynvt2 GOLD nvt temp 300 300 100
 fix recent all recenter NULL NULL INIT units lattice
 
-   #compute hb_avg H2O hbond/local 3.5 63.658 oxygen oxygen hydrogen dist hdist angle ehb
 compute hb_PF Prefilm hbond/local 3.5 63.658 oxygen oxygen hydrogen dist hdist angle ehb
-   #compute mymsd_avg H2O msd com yes average yes
 compute mymsd_PF Prefilm msd com yes
 
-# Compute RDF (EDIT LATER)
+# Compute RDF 
 compute RDF_PF Prefilm rdf 500 OW OW
 compute RDF_bulk bulk rdf 500 OW OW
 fix rdf_pf_calc Prefilm ave/time 10 50 500 c_RDF_PF[*] file RDF_PF.rdf mode vector
